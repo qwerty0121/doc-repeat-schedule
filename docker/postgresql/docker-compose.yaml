@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: repeat-schedule
+      POSTGRES_PASSWORD: zaq12wsx
+      POSTGRES_DB: repeat-schedule
+      TZ: "Asia/Tokyo"
+    ports:
+      - 15432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
