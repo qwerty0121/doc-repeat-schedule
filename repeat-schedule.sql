@@ -78,6 +78,11 @@ with
   )
 
 select
+  (select start_date from parameter) as search_start_date,
+  (select end_date from parameter) as search_end_date,
+  repeat_schedule.repeat_start_date,
+  repeat_schedule.repeat_end_date,
+  repeat_schedule.repeat_parameters,
   repeat_schedule.title,
   repeat_schedule.schedule_group_id,
   unnest(
