@@ -119,17 +119,17 @@ select
 
         -- n日ごと
         when 'every-n-days' then (
-            -- n日ごと
-            repeated_dates.days % repeat_schedule.days = 0
+          -- n日ごと
+          repeated_dates.days % repeat_schedule.days = 0
         )
 
         -- n週ごと 指定曜日
         when 'x-day-of-week-every-n-weeks' then (
-            -- n週ごと
-            repeated_dates.weeks % repeat_schedule.weeks = 0
+          -- n週ごと
+          repeated_dates.weeks % repeat_schedule.weeks = 0
 
-            -- 指定曜日
-            and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
+          -- 指定曜日
+          and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
         )
 
         -- nヶ月ごと 指定日にち
@@ -152,43 +152,43 @@ select
 
         -- nヶ月ごと 指定週 指定曜日
         when 'x-day-of-mth-week-every-n-months' then (
-            -- nヶ月ごと
-            repeated_dates.months % repeat_schedule.months = 0
+          -- nヶ月ごと
+          repeated_dates.months % repeat_schedule.months = 0
 
-            -- m週目
-            -- NOTE: "対象日の月初日"がある週の始まりの日 から 対象日 までの経過日数を7で割った際の商で、該当月において何週目かを判定
-            and date_part('day', repeated_dates.repeated_date - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
-              = repeat_schedule.weekNumber
+          -- m週目
+          -- NOTE: "対象日の月初日"がある週の始まりの日 から 対象日 までの経過日数を7で割った際の商で、該当月において何週目かを判定
+          and date_part('day', repeated_dates.repeated_date - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
+            = repeat_schedule.weekNumber
 
-            -- 指定曜日
-            and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
+          -- 指定曜日
+          and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
         )
 
         -- nヶ月ごと 最終週 指定曜日
         when 'x-day-of-last-week-every-n-months' then (
-            -- nヶ月ごと
-            repeated_dates.months % repeat_schedule.months = 0
+          -- nヶ月ごと
+          repeated_dates.months % repeat_schedule.months = 0
 
-            -- 最終週
-            -- NOTE: "対象日の月初日"がある週の始まりの日 から 対象日 までの経過日数を7で割った際の商で、該当月において何週目かを判定
-            and date_part('day', repeated_dates.repeated_date - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
-              = date_part('day', repeated_dates.lastDateOfMonth - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
+          -- 最終週
+          -- NOTE: "対象日の月初日"がある週の始まりの日 から 対象日 までの経過日数を7で割った際の商で、該当月において何週目かを判定
+          and date_part('day', repeated_dates.repeated_date - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
+            = date_part('day', repeated_dates.lastDateOfMonth - repeated_dates.firstDateOfWeekOnFirstDayOfMonth)::integer / 7 + 1
 
-            -- 指定曜日
-            and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
+          -- 指定曜日
+          and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
         )
 
         -- nヶ月ごと 指定回目の指定曜日
         when 'mth-x-day-of-week-every-n-months' then (
-            -- nヶ月ごと
-            repeated_dates.months % repeat_schedule.months = 0
+          -- nヶ月ごと
+          repeated_dates.months % repeat_schedule.months = 0
 
-            -- 第m回目
-            and date_part('day', repeated_dates.repeated_date - date_trunc('month', repeated_dates.repeated_date))::integer / 7 + 1
-              = repeat_schedule.timesDayOfWeek
+          -- 第m回目
+          and date_part('day', repeated_dates.repeated_date - date_trunc('month', repeated_dates.repeated_date))::integer / 7 + 1
+            = repeat_schedule.timesDayOfWeek
 
-            -- 指定曜日
-            and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
+          -- 指定曜日
+          and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
         )
 
         -- nヶ月ごと 最終の指定曜日
