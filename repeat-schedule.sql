@@ -44,28 +44,25 @@ with
           (2001, 1001, 'every-n-days', '{ "days": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- n週ごと 指定曜日
-          (2002, 1002, 'x-days-of-week-every-n-weeks', '{ "weeks": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
+          (2002, 1002, 'x-day-of-week-every-n-weeks', '{ "weeks": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- nヶ月ごと 指定日にち
           (2003, 1003, 'xth-of-every-n-months', '{ "months": 3, "day-of-month": 20 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
-
-          -- nヶ月ごと 指定日にち ※対象月に指定日にちが存在しない場合は月末日
-          (2004, 1004, 'xth-of-every-n-months-or-end-of-every-n-months', '{ "months": 3, "day-of-month": 31 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- nヶ月ごと 月末
           (2005, 1005, 'end-of-every-n-months', '{ "months": 3 }'::json, '2022-01-01'::timestamp, null),
 
           -- nヶ月ごと 指定週 指定曜日
-          (2006, 1006, 'x-days-of-mth-week-every-n-months', '{ "months": 3, "week-number": 4, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
+          (2006, 1006, 'x-day-of-mth-week-every-n-months', '{ "months": 3, "week-number": 4, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- nヶ月ごと 最終週 指定曜日
-          (2007, 1007, 'x-days-of-last-week-every-n-months', '{ "months": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
+          (2007, 1007, 'x-day-of-last-week-every-n-months', '{ "months": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- nヶ月ごと 指定回目の指定曜日
-          (2008, 1008, 'mth-x-days-of-week-every-n-months', '{ "months": 3, "times-days-of-week": 4, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
+          (2008, 1008, 'mth-x-day-of-week-every-n-months', '{ "months": 3, "times-day-of-week": 4, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- nヶ月ごと 最終の指定曜日
-          (2009, 1009, 'last-x-days-of-week-every-n-months', '{ "months": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
+          (2009, 1009, 'last-x-day-of-week-every-n-months', '{ "months": 3, "day-of-week": 3 }'::json, '2022-01-01'::timestamp, '2022-12-31'::timestamp),
 
           -- TODO 境界値テストとなるようにテストデータを修正する
           -- 検索対象期間外
@@ -103,8 +100,6 @@ select
             date_part('month', age(repeated_date, repeat_schedule.repeat_start_date))::integer as months,
             -- 対象日の月の月末日
             date_trunc('month', repeated_date) + '1 month' + '-1 day' as lastDateOfMonth,
-            -- 対象日の月の月末の日にち
-            date_part('day', date_trunc('month', repeated_date) + '1 month' + '-1 day')::integer as lastDayOfMonth,
             -- 対象日の月の月初日の週の始まりの日
             (date_trunc('month', repeated_date) - cast(date_part('dow', date_trunc('month', repeated_date)) || 'day' as interval)) as firstDateOfWeekOnFirstDayOfMonth
           from
@@ -124,7 +119,7 @@ select
         )
 
         -- n週ごと 指定曜日
-        when 'x-days-of-week-every-n-weeks' then (
+        when 'x-day-of-week-every-n-weeks' then (
             -- n週ごと
             repeated_dates.weeks % repeat_schedule.weeks = 0
 
@@ -141,25 +136,6 @@ select
           and repeated_dates.day = repeat_schedule.dayOfMonth
         )
 
-        -- nヶ月ごと 指定日にち ※対象月に指定日にちが存在しない場合は月末日
-        when 'xth-of-every-n-months-or-end-of-every-n-months' then (
-          -- nヶ月ごと
-          repeated_dates.months % repeat_schedule.months = 0
-
-          and (
-            -- 指定日にち
-            repeated_dates.day = repeat_schedule.dayOfMonth
-
-            -- (該当月に指定日にちが存在しない場合は)月末日
-            or (
-              -- 月末の日にちより大きい日にちが指定されている
-              repeated_dates.lastDayOfMonth < repeat_schedule.dayOfMonth
-              -- 対象日が月末日
-              and repeated_dates.repeated_date = repeated_dates.lastDateOfMonth
-            )
-          )
-        )
-
         -- nヶ月ごと 月末
         when 'end-of-every-n-months' then (
           -- nヶ月ごと
@@ -170,7 +146,7 @@ select
         )
 
         -- nヶ月ごと 指定週 指定曜日
-        when 'x-days-of-mth-week-every-n-months' then (
+        when 'x-day-of-mth-week-every-n-months' then (
             -- nヶ月ごと
             repeated_dates.months % repeat_schedule.months = 0
 
@@ -184,7 +160,7 @@ select
         )
 
         -- nヶ月ごと 最終週 指定曜日
-        when 'x-days-of-last-week-every-n-months' then (
+        when 'x-day-of-last-week-every-n-months' then (
             -- nヶ月ごと
             repeated_dates.months % repeat_schedule.months = 0
 
@@ -198,20 +174,20 @@ select
         )
 
         -- nヶ月ごと 指定回目の指定曜日
-        when 'mth-x-days-of-week-every-n-months' then (
+        when 'mth-x-day-of-week-every-n-months' then (
             -- nヶ月ごと
             repeated_dates.months % repeat_schedule.months = 0
 
             -- 第m回目
             and date_part('day', repeated_dates.repeated_date - date_trunc('month', repeated_dates.repeated_date))::integer / 7 + 1
-              = repeat_schedule.timesDaysOfWeek
+              = repeat_schedule.timesDayOfWeek
 
             -- 指定曜日
             and repeated_dates.dayOfWeek = repeat_schedule.dayOfWeek
         )
 
         -- nヶ月ごと 最終の指定曜日
-        when 'last-x-days-of-week-every-n-months' then (
+        when 'last-x-day-of-week-every-n-months' then (
           -- nヶ月ごと
           repeated_dates.months % repeat_schedule.months = 0
 
@@ -238,7 +214,7 @@ from
       (r.repeat_parameters->>'weeks')::integer as weeks,
       (r.repeat_parameters->>'months')::integer as months,
       (r.repeat_parameters->>'week-number')::integer as weekNumber,
-      (r.repeat_parameters->>'times-days-of-week')::integer as timesDaysOfWeek,
+      (r.repeat_parameters->>'times-day-of-week')::integer as timesDayOfWeek,
       (r.repeat_parameters->>'day-of-week')::integer as dayOfWeek,
       (r.repeat_parameters->>'day-of-month')::integer as dayOfMonth
     from
